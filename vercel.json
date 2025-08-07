@@ -1,9 +1,12 @@
 {
-    "builds": [
-      { "src": "package.json", "use": "@vercel/static-build" }
+    "headers": [
+      {
+        "source": "/assets/(.*).js",
+        "headers": [{ "key": "Content-Type", "value": "application/javascript" }]
+      }
     ],
-    "routes": [
-      { "src": "/(.*)", "dest": "/" }
+    "rewrites": [
+      { "source": "/(.*)", "destination": "/index.html" }
     ]
   }
   
