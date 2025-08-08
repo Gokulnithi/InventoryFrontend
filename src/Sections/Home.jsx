@@ -15,7 +15,7 @@ import {
 const Home = () => {
   const [data, setData] = useState({});
   const [role, setRole] = useState("");
-  const [username, setUsername] = useState(""); // ✅ new state
+  const [username, setUsername] = useState("");
   const [availableBases, setAvailableBases] = useState([]);
   const [selectedBase, setSelectedBase] = useState("");
   const [loading, setLoading] = useState(true);
@@ -85,7 +85,6 @@ const Home = () => {
             py: { xs: 2, sm: 3, md: 4 },
           }}
         >
-          {/* ✅ Welcome Message */}
           <Box sx={{ mb: 4, textAlign: "center" }}>
             <Typography variant="h4" fontWeight="bold" gutterBottom>
               Welcome, {username}
@@ -95,7 +94,6 @@ const Home = () => {
             </Typography>
           </Box>
 
-          {/* ✅ Base Selector */}
           <Box sx={{ mb: { xs: 3, sm: 4 } }}>
             <Typography variant="h6" gutterBottom>
               Select Base
