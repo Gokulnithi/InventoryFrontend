@@ -15,21 +15,22 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import useUser from "../hooks/useUser"; 
+import useUser from "../hooks/useUser";
 
 const baseOptions = ["base1", "base2", "base3"];
 
 const History = () => {
-  const { user, userLoading, userError } = useUser(); 
+  const { user, userLoading, userError } = useUser();
   const [transactions, setTransactions] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [baseFilter, setBaseFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [startDate, setStartDate] = useState(""); // ✅ new state
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user?.base) {
-      setBaseFilter(user.base); 
+      setBaseFilter(user.base);
     }
   }, [user]);
 
@@ -50,6 +51,7 @@ const History = () => {
 
   useEffect(() => {
     let result = transactions;
+
     if (baseFilter) {
       result = result.filter(
         (tx) =>
@@ -58,11 +60,21 @@ const History = () => {
           tx.toBase === baseFilter
       );
     }
+
     if (typeFilter) {
       result = result.filter((tx) => tx.type === typeFilter);
     }
+
+    if (startDate) {
+      const start = new Date(startDate);
+      result = result.filter((tx) => {
+        const txDate = new Date(tx.date);
+        return txDate >= start;
+      });
+    }
+
     setFiltered(result);
-  }, [baseFilter, typeFilter, transactions]);
+  }, [baseFilter, typeFilter, startDate, transactions]);
 
   if (userLoading || loading) {
     return (
@@ -93,7 +105,7 @@ const History = () => {
         Transaction History
       </Typography>
 
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 4, flexWrap: "wrap" }}>
         {(role === "admin" || role === "commander") && (
           <TextField
             label="Filter by Base"
@@ -127,6 +139,17 @@ const History = () => {
           <MenuItem value="expended">Expended</MenuItem>
           <MenuItem value="returned">Returned</MenuItem>
         </TextField>
+
+        {/* ✅ Date Filter */}
+        <TextField
+          label="Start Date"
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          variant="outlined"
+          sx={{ minWidth: 180 }}
+        />
       </Box>
 
       <TableContainer
