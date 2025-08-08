@@ -15,6 +15,7 @@ import {
 const Home = () => {
   const [data, setData] = useState({});
   const [role, setRole] = useState("");
+  const [username, setUsername] = useState(""); // ✅ new state
   const [availableBases, setAvailableBases] = useState([]);
   const [selectedBase, setSelectedBase] = useState("");
   const [loading, setLoading] = useState(true);
@@ -30,12 +31,12 @@ const Home = () => {
         const { user, bases } = response.data;
 
         setRole(user.role);
+        setUsername(user.name);
         setData(bases);
 
         const baseKeys = Object.keys(bases);
         setAvailableBases(baseKeys);
 
-        // ✅ Check localStorage first
         const storedBase = localStorage.getItem("selectedBase");
         const defaultBase = baseKeys.includes(storedBase)
           ? storedBase
@@ -57,7 +58,7 @@ const Home = () => {
   const handleBaseChange = (event) => {
     const newBase = event.target.value;
     setSelectedBase(newBase);
-    localStorage.setItem("selectedBase", newBase); // ✅ persist selection
+    localStorage.setItem("selectedBase", newBase);
   };
 
   const selectedBaseData = selectedBase ? data[selectedBase] : [];
@@ -84,11 +85,18 @@ const Home = () => {
             py: { xs: 2, sm: 3, md: 4 },
           }}
         >
-          <Box
-            sx={{
-              mb: { xs: 3, sm: 4 },
-            }}
-          >
+          {/* ✅ Welcome Message */}
+          <Box sx={{ mb: 4, textAlign: "center" }}>
+            <Typography variant="h4" fontWeight="bold" gutterBottom>
+              Welcome, {username}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Please select a base to view its inventory
+            </Typography>
+          </Box>
+
+          {/* ✅ Base Selector */}
+          <Box sx={{ mb: { xs: 3, sm: 4 } }}>
             <Typography variant="h6" gutterBottom>
               Select Base
             </Typography>
@@ -108,8 +116,6 @@ const Home = () => {
               </Select>
             </FormControl>
           </Box>
-
-          {/* ✅ Pass baseName explicitly */}
           <Products data={selectedBaseData} baseName={selectedBase} />
         </Container>
       )}
