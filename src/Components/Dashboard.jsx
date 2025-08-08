@@ -3,17 +3,16 @@ import PurchaseForm from "../Forms/PurchaseForm";
 import AssignedForm from "../Forms/AssignedForm";
 import TransferInForm from "../Forms/TransferInForm";
 import DashboardProducts from "./DashboardProducts";
-// Removed TransferOutForm import
-import { Box, Typography, Grid, Paper } from "@mui/material";
+import { Box, Typography, Grid, Paper, CircularProgress } from "@mui/material";
+import useUser from "../hooks/useUser";
 
 const Dashboard = () => {
-  const role = localStorage.getItem("role");
-  const base = localStorage.getItem("base");
+  const { user, userLoading, userError } = useUser();
+
   const canAccess = {
     purchase: ["admin", "commander", "user"],
     assigned: ["admin", "commander"],
     transferIn: ["admin", "commander", "user"],
-    // transferOut removed from access map
   };
 
   const renderForm = (title, Component) => (
@@ -35,17 +34,33 @@ const Dashboard = () => {
         <Typography variant="h6" gutterBottom>
           {title}
         </Typography>
-        <Box
-          sx={{
-            width: "100%",
-            maxWidth: 400,
-          }}
-        >
+        <Box sx={{ width: "100%", maxWidth: 400 }}>
           <Component />
         </Box>
       </Paper>
     </Grid>
   );
+
+  if (userLoading) {
+    return (
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography mt={2}>Loading user info...</Typography>
+      </Box>
+    );
+  }
+
+  if (userError || !user) {
+    return (
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <Typography variant="h6" color="error">
+          Unable to load user info. Please log in again.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const { role, base } = user;
 
   return (
     <Box
@@ -76,7 +91,6 @@ const Dashboard = () => {
           renderForm("Assigned", AssignedForm)}
         {canAccess.transferIn.includes(role) &&
           renderForm("Transfer In", TransferInForm)}
-        {/* Transfer Out intentionally excluded */}
       </Grid>
     </Box>
   );

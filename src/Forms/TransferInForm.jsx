@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { TextField, Button, Stack, Autocomplete, CircularProgress } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Stack,
+  Autocomplete,
+  CircularProgress
+} from "@mui/material";
 import { itemNames } from "../Constans/comps";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import useUser from "../hooks/useUser";
 
 const TransferInForm = () => {
+  const { user, userLoading, userError } = useUser();
+
   const [selectedItem, setSelectedItem] = useState('');
   const [fromBase, setFromBase] = useState('');
   const [receivedDate, setReceivedDate] = useState('');
@@ -17,7 +26,6 @@ const TransferInForm = () => {
 
   const handleSubmit = async () => {
     if (!selectedItem || !fromBase || !receivedDate || !count) {
-      toast.dismiss();
       toast.warning("Please fill all fields", { toastId: "transfer-fields" });
       return;
     }
@@ -27,16 +35,25 @@ const TransferInForm = () => {
     const receivedDt = new Date(receivedDate);
 
     if (receivedDt < today) {
-      toast.dismiss();
       toast.error("Received date cannot be in the past", { toastId: "transfer-date" });
       return;
     }
 
+    if (userLoading) {
+      toast.error("User info is still loading. Please wait...", { toastId: "user-loading" });
+      return;
+    }
+
+    if (userError || !user?.name || !user?.base) {
+      toast.error("User info not available. Please log in again.", { toastId: "user-error" });
+      return;
+    }
+
     const payload = {
-      username: localStorage.getItem("username"),
+      username: user.name,
       itemName: selectedItem,
       fromBase: fromBase,
-      toBase: localStorage.getItem("base"),
+      toBase: user.base,
       count: parseInt(count),
       receivedDate: receivedDate
     };
@@ -47,6 +64,7 @@ const TransferInForm = () => {
         withCredentials: true
       });
 
+      toast.success("Item transferred successfully", { toastId: "transfer-success" });
 
       setSelectedItem('');
       setFromBase('');
@@ -54,8 +72,9 @@ const TransferInForm = () => {
       setCount('');
     } catch (err) {
       console.error("Transfer In failed:", err);
-      toast.dismiss();
-      toast.error("Failed to transfer item", { toastId: "transfer-error" });
+      toast.error(err.response?.data?.message || "Failed to transfer item", {
+        toastId: "transfer-error"
+      });
     } finally {
       setLoading(false);
     }

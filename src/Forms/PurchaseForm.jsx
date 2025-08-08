@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
-import { TextField, Button, Stack, Autocomplete, CircularProgress } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Stack,
+  Autocomplete,
+  CircularProgress
+} from '@mui/material';
 import { itemNames } from "../Constans/comps";
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import useUser from '../hooks/useUser';
 
 const PurchaseForm = () => {
-  const user = localStorage.getItem("username");
+  const { user, userLoading, userError } = useUser();
+
   const [selectedItem, setSelectedItem] = useState('');
   const [quantity, setQuantity] = useState('');
   const [receivedDate, setReceivedDate] = useState('');
@@ -16,7 +24,6 @@ const PurchaseForm = () => {
 
   const handleSubmit = async () => {
     if (!selectedItem || !quantity || !receivedDate) {
-      toast.dismiss();
       toast.warning("Please fill all fields", { toastId: "form-warning" });
       return;
     }
@@ -26,13 +33,22 @@ const PurchaseForm = () => {
     const receivedDt = new Date(receivedDate);
 
     if (receivedDt < today) {
-      toast.dismiss();
       toast.error("Received date cannot be in the past", { toastId: "date-error" });
       return;
     }
 
+    if (userLoading) {
+      toast.error("User info is still loading. Please wait...", { toastId: "user-loading" });
+      return;
+    }
+
+    if (userError || !user?.name) {
+      toast.error("User info not available. Please log in again.", { toastId: "user-error" });
+      return;
+    }
+
     const payload = {
-      username: user,
+      username: user.name,
       name: selectedItem,
       count: parseInt(quantity),
       date: receivedDate
@@ -44,13 +60,16 @@ const PurchaseForm = () => {
         withCredentials: true
       });
 
+      toast.success("Purchase recorded successfully", { toastId: "purchase-success" });
+
       setSelectedItem('');
       setQuantity('');
       setReceivedDate('');
     } catch (err) {
       console.error("Error submitting purchase:", err);
-      toast.dismiss();
-      toast.error("Failed to record purchase", { toastId: "purchase-error" });
+      toast.error(err.response?.data?.message || "Failed to record purchase", {
+        toastId: "purchase-error"
+      });
     } finally {
       setLoading(false);
     }
@@ -58,7 +77,7 @@ const PurchaseForm = () => {
 
   return (
     <>
-      <ToastContainer 
+      <ToastContainer
         position="top-right"
         theme="colored"
         limit={1}

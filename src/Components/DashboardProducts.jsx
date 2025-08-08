@@ -17,19 +17,25 @@ import {
   CircularProgress,
   Box,
 } from "@mui/material";
+import useUser from "../hooks/useUser";
+
+const baseOptions = ["base1", "base2", "base3"];
 
 const DashboardProducts = () => {
-  const role = localStorage.getItem("role");
-  const userBase = localStorage.getItem("base");
+  const { user, userLoading, userError } = useUser();
 
-  const baseOptions = ["base1", "base2", "base3"]; 
-
-  const [selectedBase, setSelectedBase] = useState(role === "admin" ? userBase : userBase);
+  const [selectedBase, setSelectedBase] = useState("");
   const [products, setProducts] = useState([]);
   const [filterType, setFilterType] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(new Date("2025-08-01"));
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && user.base) {
+      setSelectedBase(user.base);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!selectedBase) return;
@@ -67,6 +73,27 @@ const DashboardProducts = () => {
 
     return matchesType && matchesSearch && matchesDate;
   });
+
+  if (userLoading) {
+    return (
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        <CircularProgress />
+        <Typography mt={2}>Loading user info...</Typography>
+      </Box>
+    );
+  }
+
+  if (userError || !user) {
+    return (
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        <Typography variant="h6" color="error">
+          Unable to load user info. Please log in again.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const { role } = user;
 
   return (
     <Box sx={{ padding: 3 }}>

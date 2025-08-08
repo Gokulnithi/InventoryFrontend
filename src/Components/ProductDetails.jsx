@@ -16,9 +16,12 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
+import useUser from "../hooks/useUser"; // ✅ Import the hook
 
 const ProductDetails = () => {
   const { base, id } = useParams();
+  const { user, userLoading, userError } = useUser(); // ✅ Use the hook
+
   const [product, setProduct] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState(null);
@@ -42,12 +45,59 @@ const ProductDetails = () => {
     fetchProduct();
   }, [base, id]);
 
-  if (!product) {
+  const handleOpenModal = (assignment) => {
+    setSelectedAssignment(assignment);
+    setReturnedCount("");
+    setOpenModal(true);
+  };
+
+  const handleSubmitReturn = async () => {
+    const returned = parseInt(returnedCount);
+    const assigned = selectedAssignment.count;
+    const expended = assigned - returned;
+
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/inventory/${base}/${id}/returned`,
+        {
+          returnedCount: returned,
+          expendedCount: expended,
+          receiptantId: selectedAssignment._id,
+          username: user?.name,
+          role: user?.role,
+        },
+        { withCredentials: true }
+      );
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/products/${base}/${id}`,
+        {
+          withCredentials: true,
+        }
+      );
+      setProduct(res.data);
+      setOpenModal(false);
+    } catch (err) {
+      console.error("Error submitting return:", err);
+    }
+  };
+
+  if (userLoading || !product) {
     return (
       <Container sx={{ textAlign: "center", mt: 10 }}>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
           Loading product details...
+        </Typography>
+      </Container>
+    );
+  }
+
+  if (userError || !user) {
+    return (
+      <Container sx={{ textAlign: "center", mt: 10 }}>
+        <Typography variant="h6" color="error">
+          Unable to load user info. Please log in again.
         </Typography>
       </Container>
     );
@@ -66,14 +116,11 @@ const ProductDetails = () => {
   } = product;
 
   const receiptants = assigned?.receiptants ?? [];
-
   const totalAssigned = receiptants.reduce((sum, r) => sum + (r.count ?? 0), 0);
-
   const netMovement =
     (purchased?.count ?? 0) +
     (transferedIn?.count ?? 0) -
     (transferedOut?.count ?? 0);
-
   const closingBalance =
     (openingBalance?.count ?? 0) +
     netMovement -
@@ -90,44 +137,6 @@ const ProductDetails = () => {
     { label: "Expended", value: expended?.count ?? 0 },
     { label: "Closing Balance", value: closingBalance },
   ];
-
-  const handleOpenModal = (assignment) => {
-    setSelectedAssignment(assignment);
-    setReturnedCount("");
-    setOpenModal(true);
-  };
-
-  const handleSubmitReturn = async () => {
-    const returned = parseInt(returnedCount);
-    const assigned = selectedAssignment.count;
-    const expended = assigned - returned;
-    const role = localStorage.getItem('role');
-    const username = localStorage.getItem('username')
-    try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/inventory/${base}/${id}/returned`,
-        {
-          returnedCount: returned,
-          expendedCount: expended,
-          receiptantId: selectedAssignment._id,
-          username:username,
-          role:role,
-        },
-        { withCredentials: true }
-      );
-
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/products/${base}/${id}`,
-        {
-          withCredentials: true,
-        }
-      );
-      setProduct(res.data);
-      setOpenModal(false);
-    } catch (err) {
-      console.error("Error submitting return:", err);
-    }
-  };
 
   return (
     <Container sx={{ mt: 4, width: "100vw" }}>
@@ -174,12 +183,7 @@ const ProductDetails = () => {
           <Grid container spacing={2} justifyContent="center">
             {receiptants.map((r, index) => (
               <Grid item xs={12} sm={6} key={index}>
-                <Card
-                  variant="outlined"
-                  style={{
-                    minWidth: "350px",
-                  }}
-                >
+                <Card variant="outlined" sx={{ minWidth: 350 }}>
                   <CardContent>
                     <Typography variant="body2" color="text.secondary">
                       Assigning To: {r.name}

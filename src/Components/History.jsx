@@ -15,15 +15,23 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import useUser from "../hooks/useUser"; // ✅ Import your hook
+
+const baseOptions = ["base1", "base2", "base3"];
 
 const History = () => {
+  const { user, userLoading, userError } = useUser(); // ✅ Use the hook
   const [transactions, setTransactions] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [baseFilter, setBaseFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const baseOptions = ["base1", "base2", "base3"];
+  useEffect(() => {
+    if (user?.base) {
+      setBaseFilter(user.base); // ✅ Set default base from user
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -56,7 +64,7 @@ const History = () => {
     setFiltered(result);
   }, [baseFilter, typeFilter, transactions]);
 
-  if (loading) {
+  if (userLoading || loading) {
     return (
       <Container sx={{ textAlign: "center", mt: 10 }}>
         <CircularProgress />
@@ -67,6 +75,18 @@ const History = () => {
     );
   }
 
+  if (userError || !user) {
+    return (
+      <Container sx={{ textAlign: "center", mt: 10 }}>
+        <Typography variant="h6" color="error">
+          Unable to load user info. Please log in again.
+        </Typography>
+      </Container>
+    );
+  }
+
+  const { role } = user;
+
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" align="center" gutterBottom>
@@ -74,21 +94,23 @@ const History = () => {
       </Typography>
 
       <Box sx={{ display: "flex", justifyContent: "center", gap: 2, mb: 4 }}>
-        <TextField
-          label="Filter by Base"
-          select
-          value={baseFilter}
-          onChange={(e) => setBaseFilter(e.target.value)}
-          variant="outlined"
-          sx={{ minWidth: 150 }}
-        >
-          <MenuItem value="">All</MenuItem>
-          {baseOptions.map((base) => (
-            <MenuItem key={base} value={base}>
-              {base}
-            </MenuItem>
-          ))}
-        </TextField>
+        {(role === "admin" || role === "commander") && (
+          <TextField
+            label="Filter by Base"
+            select
+            value={baseFilter}
+            onChange={(e) => setBaseFilter(e.target.value)}
+            variant="outlined"
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="">All</MenuItem>
+            {baseOptions.map((base) => (
+              <MenuItem key={base} value={base}>
+                {base}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
 
         <TextField
           label="Filter by Type"
@@ -102,8 +124,8 @@ const History = () => {
           <MenuItem value="purchase">Purchase</MenuItem>
           <MenuItem value="transfer">Transfer</MenuItem>
           <MenuItem value="assignment">Assignment</MenuItem>
-          <MenuItem value="expended">Expended</MenuItem> 
-          <MenuItem value="returned">Returned</MenuItem> 
+          <MenuItem value="expended">Expended</MenuItem>
+          <MenuItem value="returned">Returned</MenuItem>
         </TextField>
       </Box>
 
@@ -114,44 +136,42 @@ const History = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Item Name</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Type</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Base</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>From</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>To</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Count</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Date</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Username</TableCell>
-              <TableCell sx={{ fontSize: "1.1rem", fontWeight: "bold" }}>Role</TableCell>
+              <TableCell><strong>Item Name</strong></TableCell>
+              <TableCell><strong>Type</strong></TableCell>
+              <TableCell><strong>Base</strong></TableCell>
+              <TableCell><strong>From</strong></TableCell>
+              <TableCell><strong>To</strong></TableCell>
+              <TableCell><strong>Count</strong></TableCell>
+              <TableCell><strong>Date</strong></TableCell>
+              <TableCell><strong>Username</strong></TableCell>
+              <TableCell><strong>Role</strong></TableCell>
             </TableRow>
           </TableHead>
-          {filtered.length > 0 ? (
-            <TableBody>
-              {filtered.map((tx) => (
+          <TableBody>
+            {filtered.length > 0 ? (
+              filtered.map((tx) => (
                 <TableRow key={tx._id}>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.itemName}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.type}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.base || "-"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.type === "transfer" ? tx.base : "-"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.toBase || "-"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.count != null ? tx.count : "-"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>
+                  <TableCell>{tx.itemName}</TableCell>
+                  <TableCell>{tx.type}</TableCell>
+                  <TableCell>{tx.base || "-"}</TableCell>
+                  <TableCell>{tx.type === "transfer" ? tx.base : "-"}</TableCell>
+                  <TableCell>{tx.toBase || "-"}</TableCell>
+                  <TableCell>{tx.count != null ? tx.count : "-"}</TableCell>
+                  <TableCell>
                     {tx.date ? new Date(tx.date).toLocaleDateString() : "-"}
                   </TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.username || "-"}</TableCell>
-                  <TableCell sx={{ fontSize: "1rem" }}>{tx.role || "-"}</TableCell>
+                  <TableCell>{tx.username || "-"}</TableCell>
+                  <TableCell>{tx.role || "-"}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          ) : (
-            <TableBody>
+              ))
+            ) : (
               <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ fontSize: "1rem" }}>
+                <TableCell colSpan={9} align="center">
                   No History
                 </TableCell>
               </TableRow>
-            </TableBody>
-          )}
+            )}
+          </TableBody>
         </Table>
       </TableContainer>
     </Container>

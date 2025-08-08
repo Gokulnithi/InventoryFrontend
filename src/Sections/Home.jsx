@@ -24,23 +24,26 @@ const Home = () => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/api/userinfo/me`,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
 
         const { user, bases } = response.data;
-
-        localStorage.setItem("username", user.username);
-        localStorage.setItem("base", user.base);
 
         setRole(user.role);
         setData(bases);
 
         const baseKeys = Object.keys(bases);
         setAvailableBases(baseKeys);
-        let index = baseKeys.indexOf(user.base);
-        setSelectedBase(baseKeys[index]);
+
+        // ✅ Check localStorage first
+        const storedBase = localStorage.getItem("selectedBase");
+        const defaultBase = baseKeys.includes(storedBase)
+          ? storedBase
+          : baseKeys.includes(user.base)
+          ? user.base
+          : baseKeys[0];
+
+        setSelectedBase(defaultBase);
       } catch (err) {
         console.error("Error fetching user data:", err);
       } finally {
@@ -52,7 +55,9 @@ const Home = () => {
   }, []);
 
   const handleBaseChange = (event) => {
-    setSelectedBase(event.target.value);
+    const newBase = event.target.value;
+    setSelectedBase(newBase);
+    localStorage.setItem("selectedBase", newBase); // ✅ persist selection
   };
 
   const selectedBaseData = selectedBase ? data[selectedBase] : [];
@@ -104,6 +109,7 @@ const Home = () => {
             </FormControl>
           </Box>
 
+          {/* ✅ Pass baseName explicitly */}
           <Products data={selectedBaseData} baseName={selectedBase} />
         </Container>
       )}

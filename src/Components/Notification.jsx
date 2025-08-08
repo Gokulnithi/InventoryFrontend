@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
   Box,
   Typography,
@@ -11,39 +10,57 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useUser from "../hooks/useUser"; // ✅ Import the hook
 
 const Notification = () => {
+  const { user, userLoading, userError } = useUser(); // ✅ Use the hook
   const [dueItems, setDueItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const base = localStorage.getItem("base");
 
   useEffect(() => {
-    if (!base) return;
+    const fetchNotifications = async () => {
+      if (!user?.base) return;
 
-    setLoading(true);
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/notifications/due/${base}`)
-      .then((res) => {
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/notifications/due/${user.base}`
+        );
         setDueItems(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching notifications:", err);
+      } finally {
         setLoading(false);
-      });
-  }, [base]);
-  useEffect(() => {
-    if (dueItems.length > 0) {
-      localStorage.setItem("hasNotifications", "true");
-    } else {
-      localStorage.setItem("hasNotifications", "false");
-    }
-  }, [dueItems]);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]);
+
 
   const handleClick = (itemId) => {
-    navigate(`/product/${base}/${itemId}`);
+    navigate(`/product/${user.base}/${itemId}`);
   };
+
+  if (userLoading || loading) {
+    return (
+      <Box sx={{ padding: 4, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography mt={2}>Loading notifications...</Typography>
+      </Box>
+    );
+  }
+
+  if (userError || !user) {
+    return (
+      <Box sx={{ padding: 4, textAlign: "center" }}>
+        <Typography variant="h6" color="error">
+          Unable to load user info. Please log in again.
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -51,11 +68,7 @@ const Notification = () => {
         Notifications
       </Typography>
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : dueItems.length === 0 ? (
+      {dueItems.length === 0 ? (
         <Typography variant="body1">No notifications to show.</Typography>
       ) : (
         <Paper elevation={3} sx={{ padding: 2 }}>
