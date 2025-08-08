@@ -31,9 +31,8 @@ const Home = () => {
         const { user, bases } = response.data;
 
         setRole(user.role);
-        setUsername(user.name);
+        setUsername(user.username);
         setData(bases);
-
         const baseKeys = Object.keys(bases);
         setAvailableBases(baseKeys);
 

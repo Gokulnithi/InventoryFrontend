@@ -15,12 +15,12 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
-import useUser from "../hooks/useUser"; // ✅ Import your hook
+import useUser from "../hooks/useUser"; 
 
 const baseOptions = ["base1", "base2", "base3"];
 
 const History = () => {
-  const { user, userLoading, userError } = useUser(); // ✅ Use the hook
+  const { user, userLoading, userError } = useUser(); 
   const [transactions, setTransactions] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [baseFilter, setBaseFilter] = useState("");
@@ -29,7 +29,7 @@ const History = () => {
 
   useEffect(() => {
     if (user?.base) {
-      setBaseFilter(user.base); // ✅ Set default base from user
+      setBaseFilter(user.base); 
     }
   }, [user]);
 

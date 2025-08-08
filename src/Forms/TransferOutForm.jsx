@@ -22,7 +22,7 @@ const TransferOutForm = () => {
 
   return (
     <Stack spacing={2}>
-      {/* Item Autocomplete */}
+      {}
       <Autocomplete
         options={itemNames}
         value={selectedItem}
@@ -34,7 +34,7 @@ const TransferOutForm = () => {
         clearOnEscape
       />
 
-      {/* To Base */}
+      {}
       <TextField
         label="To Base"
         value={toBase}
@@ -42,7 +42,7 @@ const TransferOutForm = () => {
         fullWidth
       />
 
-      {/* Dispatch Date */}
+      {}
       <TextField
         label="Dispatch Date"
         type="date"
@@ -52,7 +52,7 @@ const TransferOutForm = () => {
         fullWidth
       />
 
-      {/* Submit Button */}
+      {}
       <Button variant="contained" color="primary" onClick={handleSubmit}>
         Initiate Transfer Out
       </Button>

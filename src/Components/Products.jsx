@@ -7,13 +7,13 @@ const Products = ({ data, baseName }) => {
   const productsPerPage = 8;
   const navigate = useNavigate();
 
-  // Extract unique categories
+  
   const categories = useMemo(() => {
     const all = data.map((item) => item.category);
     return ["All", ...new Set(all)];
   }, [data]);
 
-  // Filtered data
+  
   const filteredData =
     selectedCategory === "All"
       ? data
@@ -37,7 +37,7 @@ const Products = ({ data, baseName }) => {
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
-    setCurrentPage(1); // Reset to first page on filter change
+    setCurrentPage(1); 
   };
 
   return (
@@ -46,7 +46,7 @@ const Products = ({ data, baseName }) => {
         Inventories at <span className="text-blue-600">{baseName}</span>
       </h2>
 
-      {/* Category Filter */}
+      {}
       <div className="mb-6">
         <label className="block mb-2 font-medium">Filter by Category:</label>
         <select
@@ -87,7 +87,7 @@ const Products = ({ data, baseName }) => {
             ))}
           </div>
 
-          {/* Pagination */}
+          {}
           <div className="flex justify-center items-center mt-6 gap-4">
             <button
               onClick={handlePrev}

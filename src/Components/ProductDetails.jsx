@@ -16,11 +16,11 @@ import {
   DialogActions,
   TextField,
 } from "@mui/material";
-import useUser from "../hooks/useUser"; // ✅ Import the hook
+import useUser from "../hooks/useUser"; 
 
 const ProductDetails = () => {
   const { base, id } = useParams();
-  const { user, userLoading, userError } = useUser(); // ✅ Use the hook
+  const { user, userLoading, userError } = useUser(); 
 
   const [product, setProduct] = useState(null);
   const [openModal, setOpenModal] = useState(false);

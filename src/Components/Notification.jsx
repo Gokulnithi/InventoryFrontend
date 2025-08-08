@@ -10,10 +10,10 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import useUser from "../hooks/useUser"; // ✅ Import the hook
+import useUser from "../hooks/useUser"; 
 
 const Notification = () => {
-  const { user, userLoading, userError } = useUser(); // ✅ Use the hook
+  const { user, userLoading, userError } = useUser(); 
   const [dueItems, setDueItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
